@@ -1,4 +1,4 @@
-import collections
+import copy
 cube = list()
 color = ['w', 'y', 'r', 'o', 'g', 'b']
 temp0 = list()
@@ -9,70 +9,68 @@ for i in range(6):
         for z in range(3):
             temp2.append(color[i])
         temp1.append(temp2)
-    cube.append(temp1)
-                # 0    1    2    3    4    5
-cubeDirection = ['U', 'D', 'F', 'B', 'L', 'R']
-'''
-    U
-L   F   R   B
-    D
-'''
-def rotateOtherClock(idx): # 시계방향으로 돌릴때 나머지부분 (반시계 = 3번 시계) 
-    global cube
-    if idx == 0: # 윗면돌리기
-        one, two three = cube[2][0][0], cube[2][0][1], cube[2][0][2]
-        # F(2) <- R(5)
-        cube[2][0][0], cube[2][0][1], cube[2][0][2] = \
-            cube[5][0][0], cube[5][0][1], cube[5][0][2]
-        # R(5) <- B(3)
-        cube[5][0][0], cube[5][0][1], cube[5][0][2] = \
-            cube[3][0][0], cube[3][0][1], cube[3][0][2]
-        # B(3) <- L(4)
-        cube[3][0][0], cube[3][0][1], cube[3][0][2] = \
-            cube[4][0][2], cube[4][0][1], cube[4][0][0]
-        # L(4) <- F(2)
-        cube[4][0][0], cube[4][0][1], cube[4][0][2] = \
-            one, two, three
-    elif idx == 1: # 아랫면 돌리기
-        one, two three = cube[2][2][0], cube[2][2][1], cube[2][2][2]
-        # F(2) <- R(5)
-        cube[2][0][0], cube[2][0][1], cube[2][0][2] = \
-            cube[5][0][0], cube[5][0][1], cube[5][0][2]
-        # R(5) <- B(3)
-        cube[5][0][0], cube[5][0][1], cube[5][0][2] = \
-            cube[3][0][0], cube[3][0][1], cube[3][0][2]
-        # B(3) <- L(4)
-        cube[3][0][0], cube[3][0][1], cube[3][0][2] = \
-            cube[4][0][2], cube[4][0][1], cube[4][0][0]
-        # L(4) <- F(2)
-        cube[4][0][0], cube[4][0][1], cube[4][0][2] = \
-            one, two, three
-
-def rotate(d, c):
-    global cube
-    idx = cubeDirection.index(d) # 어느 큐브를 중심으로 돌리는가
-    temp = [[None]*3 for _ in range(3)]
-    if c == '+': # 시계
+    temp0.append(temp1)
+cube.append(temp0) # make cube 위 아래 앞 뒤 왼 오른
+color = ['U', 'D', 'F', 'B', 'L', 'R']
+def rotate(idx, direction):
+    li = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    if direction == '-': # 반시계
         for i in range(3):
             for j in range(3):
-                temp[j][3-i] = cube[idx][i][j]
-        rotateOtherClock(idx)
-    elif c == '-':
+                li[2-j][i] = cube[idx][i][j]
+        cube[idx] = copy.deepcopy(li)
+    elif direction == '+': # 시계
         for i in range(3):
             for j in range(3):
-                temp[3-j][i] = cube[idx][i][j]
-            rotateOtherClock(idx) # 반시계
-
-def solve(move):
-    direciton, clock = move[0], move[1]
-    rotate(direciton, clock)
+                li[j][2-i] = cube[idx][i][j]
+        cube[idx] = copy.deepcopy(li)
+        
+# 위 0 / 아래 1 / 앞 2 / 뒤 3 / 왼 4 / 오른 5
+def rotateOther(idx):
+    if idx == 0: # 윗면 시계방향
+        # p = 정면
+        p = list([cube[2][0][0], cube[2][0][1], cube[2][0][2]])
+        cube[2][0][0], cube[2][0][1], cube[2][0][2] = \
+            cube[5][0][0], cube[5][0][1], cube[5][0][2]
+        cube[5][0][0], cube[5][0][1], cube[5][0][2] = \
+            cube[3][0][0], cube[3][0][1], cube[3][0][2]
+        cube[3][0][0], cube[3][0][1], cube[3][0][2] = \
+            cube[4][0][2], cube[4][0][1], cube[4][0][0]
+        cube[4][0] = p
+    elif idx == 1: # 아랫면 시계 방향
+        # p = 정면
+        p = list([cube[2][2][0], cube[2][2][1], cube[2][2][2]])
+        cube[2][2][0], cube[2][2][1], cube[2][2][2] = \
+            cube[4][2][0], cube[4][2][1], cube[4][2][2]
+        cube[4][2][0], cube[4][2][1], cube[4][2][2] = \
+            cube[3][2][2], cube[3][2][1], cube[3][2][0]
+        cube[3][2][0], cube[3][2][1], cube[3][2][2] = \
+            cube[5][2][0], cube[5][2][1], cube[5][2][2]
+        cube[5][2] = p
+    elif idx == 2: # 정면 시계방향
+        # p = 윗면
+        p = list([cube[0][2][0], cube[0][2][1], cube[0][2][2]])
+        cube[0][2][0], cube[0][2][1], cube[0][2][2] = \
+            cube[4][2][2], cube[4][1][2], cube[4][0][2]
+        cube[4][0][2], cube[4][1][2], cube[4][2][2] = \
+            cube[3][0][0], cube[3][0][1], cube[3][0][2]
+        
+        # 이하생략. 노가다.
+        
+def solve(case):
+    idx, c = color.index(case[0]), case[1]
+    rotate(idx, c)
+    if c=='+': # 시계방향일 때는 한번. 반시계는 3번 돌리면댐;
+        rotateOther(idx)
+    else:
+        for _ in range(3):
+            rotateOther(idx)
 
 for _ in range(int(input())):
     for _ in range(int(input())):
-        move = input() # direction, +/--
+        move = input()
         solve(move)
-        print(cube[0][0][0]+cube[0][0][1]+cube[0][0[2])
-        print(cube[0][1][0]+cube[0][1][1]+cube[0][1][2])
-        print(cube[0][2][0]+cube[0][2][1]+cube[0][2][2])
-        
+    print(cube[0][0][0]+cube[0][0][1]+cube[0][0][2])
+    print(cube[0][1][0]+cube[0][1][1]+cube[0][1][2])
+    print(cube[0][2][0]+cube[0][2][1]+cube[0][2][2])
         
