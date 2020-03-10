@@ -1,26 +1,43 @@
-def helpCheck():
-    for i in range(N):
-        for j in range(N):
-            if space[i][j] == 9:
-                pass
-            if space[i][j] < sharkSize: # 자기보다 작은 사이즈가 있는 경우
-                return False
-    return True # 먹을 수 있는 물고기가 없어 헬프하느 경우
-
-# time check
-# 상어가 한칸 이동하는데 1초
-
+from heapq import heappop, heappush
 
 N = int(input())
-space = []
-babyShark = list()
-sharkSize = 2
-for i in range(N):
-    temp = list(map(int, input().split()))
-    try:
-        j = temp.index(9)
-        babyShark.append(i)
-        babyShark.append(j)
-    except:
-        pass
-    space.append(temp)
+arr = [list(map(int, input().split())) for _ in range(N)]
+q = []
+
+def init():
+    for y in range(N):
+        for x in range(N):
+            if arr[y][x] == 9:
+                heappush(q, (0, y, x))
+                arr[y][x] = 0
+                return
+
+def bfs():
+    global q
+    body, eat, distance = 2, 0, 0
+    path = [[0] * N for _ in range(N)]
+    while q:
+        d, y, x = heappop(q)
+        if 0 < arr[y][x] < body:
+            eat += 1
+            arr[y][x] = 0
+            if eat == body:
+                body += 1
+                eat = 0
+            distance += d
+            d = 0
+            q = []
+            path = [[0] * N for _ in range(N)]
+        
+        for dx, dy in (0, -1), (-1, 0), (1, 0), (0, 1):
+            nd, ny, nx = d+1, y+dy, x+dx
+            if nx < 0 or nx >= N or ny < 0 or ny >= N:
+                continue
+            if 0 < arr[ny][nx] > body or path[ny][nx]:
+                continue
+            path[ny][nx] = 1
+            heappush(q, (nd, ny, nx))
+    print(distance)
+
+init()
+bfs()
